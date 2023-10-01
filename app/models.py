@@ -30,7 +30,7 @@ class Contact(Model):
     birthday = Column(Date, nullable=True)
     personal_phone = Column(String(20))
     personal_celphone = Column(String(20))
-    email = Column(String(255))  # Přidán sloupec pro email
+    email = Column(String(255))
     contact_group_id = Column(Integer, ForeignKey("contact_group.id"), nullable=False)
     contact_group = relationship("ContactGroup")
     gender_id = Column(Integer, ForeignKey("gender.id"), nullable=False)
