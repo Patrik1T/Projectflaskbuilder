@@ -1,13 +1,11 @@
 import calendar
-
+import datetime
 from flask_appbuilder import ModelView
 from flask_appbuilder.charts.views import GroupByChartView
 from flask_appbuilder.models.group import aggregate_count
 from flask_appbuilder.models.sqla.interface import SQLAInterface
-
 from . import appbuilder, db
 from .models import Contact, ContactGroup, Gender, Child
-
 
 def fill_gender():
     try:
@@ -17,11 +15,10 @@ def fill_gender():
     except Exception:
         db.session.rollback()
 
-
 class ContactModelView(ModelView):
     datamodel = SQLAInterface(Contact)
 
-    list_columns = ["name", "personal_celphone", "birthday", "contact_group.name"]
+    list_columns = ["name", "email", "personal_celphone", "birthday", "contact_group.name"]
 
     base_order = ("name", "asc")
     show_fieldsets = [
@@ -42,7 +39,7 @@ class ContactModelView(ModelView):
     ]
 
     add_fieldsets = [
-        ("Summary", {"fields": ["name", "gender", "contact_group"]}),
+        ("Summary", {"fields": ["name", "email", "gender", "contact_group"]}),
         (
             "Personal Info",
             {
@@ -59,7 +56,7 @@ class ContactModelView(ModelView):
     ]
 
     edit_fieldsets = [
-        ("Summary", {"fields": ["name", "gender", "contact_group"]}),
+        ("Summary", {"fields": ["name", "email", "gender", "contact_group"]}),
         (
             "Personal Info",
             {
@@ -75,6 +72,16 @@ class ContactModelView(ModelView):
         ),
     ]
 
+    def pre_add(self, item):
+        self._set_email(item)
+
+    def pre_update(self, item):
+        self._set_email(item)
+
+    def _set_email(self, item):
+        email = self.request.form.get("email")
+        if email:
+            item.email = email
 
 class GroupModelView(ModelView):
     datamodel = SQLAInterface(ContactGroup)
@@ -83,14 +90,11 @@ class GroupModelView(ModelView):
 class ChildModelView(ModelView):
     datamodel = SQLAInterface(ContactGroup)
 
-
 def pretty_month_year(value):
     return calendar.month_name[value.month] + " " + str(value.year)
 
-
 def pretty_year(value):
     return str(value.year)
-
 
 class ContactTimeChartView(GroupByChartView):
     datamodel = SQLAInterface(Contact)
@@ -110,7 +114,6 @@ class ContactTimeChartView(GroupByChartView):
             "series": [(aggregate_count, "group")],
         },
     ]
-
 
 db.create_all()
 fill_gender()
